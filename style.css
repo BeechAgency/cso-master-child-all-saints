@@ -1,0 +1,48 @@
+/*!
+Theme Name: Maitland All Saints - Catholic Schools Office - Maitland Newcastle Theme
+Theme URI: https://beech.agency/
+Author: Beech Agency
+Author URI: https://beech.agency/
+
+Template: cso-master
+
+Description: Description
+Version: 0.0.1
+Tested up to: 6.4
+Requires PHP: 8.0
+License: GNU General Public License v2 or later
+License URI: LICENSE
+Text Domain: csomasterchild
+Tags: custom-background, custom-logo, custom-menu, featured-images, threaded-comments, translation-ready
+
+This theme, like WordPress, is licensed under the GPL.
+Use it to make something cool, have fun, and share what you've learned.
+
+csomaster is based on Underscores https://underscores.me/, (C) 2012-2020 Automattic, Inc.
+Underscores is distributed under the terms of the GNU GPL v2 or later.
+
+*/
+
+/* --------------------------------------------------------------*/
+
+:root {
+	--primary-dark : #003B5A;
+	--primary-light : #0079A3;
+	--secondary-dark : #D89700;
+	--secondary-light : #FAEAC8;
+	--warning : #C92D2D;
+	--success : #2DC98D;
+}
+
+.block.has-school-style.has-secondary-dark-background-color::after,
+.block.has-school-style.has-primary-dark-background-color::after,
+.block.has-school-style.has-black-background-color::after {
+	content:  url('./images/school-style-white.svg');
+}
+
+.block.has-school-style.has-secondary-light-background-color::after,
+.block.has-school-style.has-primary-light-background-color::after,
+.block.has-school-style.has-white-background-color::after,
+.block.has-school-style.has-transparent-background-color::after {
+	content:  url('./images/school-style-black.svg');
+}
