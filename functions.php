@@ -237,7 +237,7 @@ class CSO_Child_Theme_Updater {
     }
 }
   
-$updater = new CSOMASTER_Theme_Updater( __FILE__ );
+$updater = new CSO_Child_Theme_Updater( __FILE__ );
 $updater->set_username( 'BeechAgency' );
 $updater->set_repository( 'cso-master-child-all-saints' );
 $updater->set_theme('cso-master-child-all-saints'); 
