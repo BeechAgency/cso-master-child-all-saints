@@ -6,8 +6,8 @@ Author URI: https://beech.agency/
 
 Template: cso-master
 
-Description: Description 
-Version: 0.1
+Description: A theme for the All Saints' College Maitland 
+Version: 0.2
 Tested up to: 6.4
 Requires PHP: 8.1
 License: GNU General Public License v2 or later
@@ -45,4 +45,50 @@ Underscores is distributed under the terms of the GNU GPL v2 or later.
 .block.has-school-style.has-white-background-color::after,
 .block.has-school-style.has-transparent-background-color::after {
 	content:  url('./images/school-style-black.svg');
+}
+
+nav img.logo, aside img.logo {
+	transform: translate(0, -1rem);
+}
+.site-search-outer img.logo {
+	width: auto;
+	max-height: 5.75rem;
+}
+
+@media screen and (max-width: 960px) {
+	.nav-header-utility li:not(.menu-item-btn) {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 860px) { 
+	nav img.logo, aside img.logo {
+		transform: translate(0, -1rem);
+	}
+}
+
+@media screen and (max-width: 380px) {
+	.header-primary-nav .nav-inner {
+		flex-direction: column;
+		row-gap: 0;
+	}
+	.header-primary-nav .nav-inner  .xy-col[data-xy-col*="sm-6"] {
+		flex-basis: 100%;
+		width: 100%;
+		justify-content: center;
+	}
+	.header-primary-nav .nav-inner img.logo {
+		margin-inline: auto;
+	}
+	.header-primary-nav .nav-header-utility ul {
+		justify-content: center;
+	}
+	.mega-menu-header .btn-search {
+		display: none;
+	}
+
+	.site-search-nav {
+		flex-direction: column;
+		row-gap: 1rem;
+	}
 }
