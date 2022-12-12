@@ -232,6 +232,11 @@ class CSO_Child_Theme_Updater {
         $install_directory = get_theme_root(). '/' . $this->theme ; // Our theme directory
         $wp_filesystem->move( $result['destination'], $install_directory ); // Move files to the theme dir
         $result['destination'] = $install_directory; // Set the destination for the rest of the stack
+
+        // Activate the theme again once the files have been moved etc.
+        if($this->active) {
+            switch_theme($this->theme);
+        }
   
         return $result;
     }
@@ -245,3 +250,6 @@ $updater->set_theme('cso-master-child-all-saints');
 
 $updater->initialize();
   
+//var_dump( get_current_theme() );
+//var_dump(wp_get_theme()->get_theme_root_uri() );
+//var_dump( get_stylesheet() === 'cso-master-child-all-saints' );
