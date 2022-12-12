@@ -159,6 +159,9 @@ class CSO_Child_Theme_Updater {
         //add_filter( 'plugins_api', array( $this, 'plugin_popup' ), 10, 3);
         add_filter( 'upgrader_post_install', array( $this, 'after_install' ), 10, 3 );
         
+        // Attempt rename of files when downloading
+        add_filter( 'upgrader_source_selection', array( $this, 'rename_package_upon_download' ), 10, 3 );
+
         // Add Authorization Token to download_package
         add_filter( 'upgrader_pre_download',
             function() {
@@ -208,6 +211,32 @@ class CSO_Child_Theme_Updater {
   
         return $transient; // Return filtered transient
     }
+
+
+	public function rename_package_upon_download( $source, $remote_source=NULL, $upgrader=NULL ) {
+		if( isset( $source ) )
+			for ( $i = 0; $i < count($this->theme ); $i++ ) {
+				if( strpos( $source, $this->theme[$i]  ) )
+					$theme = $this->theme[$i];
+			}
+		
+		if( isset($_GET['action'] ) && stristr( $_GET['action'], 'theme' ) ) {
+			//$upgrader->skin->feedback( "Trying to customize theme folder name..." );
+			if( isset( $source, $remote_source ) && stristr( $source, $theme ) ){
+                
+				$corrected_source = trailingslashit( $remote_source ) . trailingslashit( $theme );
+
+				if( @rename( $source, $corrected_source ) ) {
+					//$upgrader->skin->feedback( "Theme folder name corrected to: " . $theme );
+					return $corrected_source;
+				} else {
+					//$upgrader->skin->feedback( "Unable to rename downloaded theme." );
+					return new WP_Error();
+				}
+			}
+		}
+	    return $source;
+	}
   
     public function download_package( $args, $url ) {
   
@@ -235,7 +264,7 @@ class CSO_Child_Theme_Updater {
 
         // Activate the theme again once the files have been moved etc.
         if($this->active) {
-            switch_theme($this->theme);
+            switch_theme( 'cso-master-child-all-saints' );
         }
   
         return $result;
@@ -247,9 +276,10 @@ $updater->set_username( 'BeechAgency' );
 $updater->set_repository( 'cso-master-child-all-saints' );
 $updater->set_theme('cso-master-child-all-saints'); 
 
+//switch_theme('cso-master-child-all-saints');
 
 $updater->initialize();
   
-//var_dump( get_current_theme() );
+//var_dump( get_theme_root() );
 //var_dump(wp_get_theme()->get_theme_root_uri() );
 //var_dump( get_stylesheet() === 'cso-master-child-all-saints' );
