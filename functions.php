@@ -213,18 +213,12 @@ class CSO_Child_Theme_Updater {
     }
 
 
-	public function rename_package_upon_download( $source, $remote_source=NULL, $upgrader=NULL ) {
-		if( isset( $source ) )
-			for ( $i = 0; $i < count($this->theme ); $i++ ) {
-				if( strpos( $source, $this->theme[$i]  ) )
-					$theme = $this->theme[$i];
-			}
-		
+	public function rename_package_upon_download( $source, $remote_source=NULL, $upgrader=NULL ) {		
 		if( isset($_GET['action'] ) && stristr( $_GET['action'], 'theme' ) ) {
 			//$upgrader->skin->feedback( "Trying to customize theme folder name..." );
 			if( isset( $source, $remote_source ) && stristr( $source, $theme ) ){
                 
-				$corrected_source = trailingslashit( $remote_source ) . trailingslashit( $theme );
+				$corrected_source = $this->theme;
 
 				if( @rename( $source, $corrected_source ) ) {
 					//$upgrader->skin->feedback( "Theme folder name corrected to: " . $theme );
