@@ -271,11 +271,10 @@ class CSO_Child_Theme_Updater {
   
 $updater = new CSO_Child_Theme_Updater( __FILE__ );
 
+//$updater->authorize('');
 $updater->set_username( 'BeechAgency' );
 $updater->set_repository( 'cso-master-child-all-saints' );
 $updater->set_theme('cso-master-child-all-saints'); 
-
-//switch_theme('cso-master-child-all-saints');
 
 $updater->initialize();
   
@@ -292,6 +291,6 @@ function console_log($output, $with_script_tags = true) {
     echo $js_code;
 }
 
-console_log($updater->log, true);
+//console_log($updater->log, true);
 
 do_action('admin_footer', 'console_log');
