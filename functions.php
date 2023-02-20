@@ -44,48 +44,6 @@ add_filter('tiny_mce_before_init', 'csomaster_mce4_options');
 
 
 
-
-/* 
- * Automatic theme updates from the GitHub repository
- * Care of https://gist.github.com/slfrsn/a75b2b9ef7074e22ce3b. modified by me
- */ 
-/*
-add_filter('pre_set_site_transient_update_themes', 'cso_child_automatic_GitHub_updates', 100, 1);
-
-function cso_child_automatic_GitHub_updates($data) {
-  // Theme information
-  $theme   = get_stylesheet(); // Folder name of the current theme
-  $current = wp_get_theme()->get('Version'); // Get the version of the current theme
-  // GitHub information
-  $user = 'BeechAgency'; // The GitHub username hosting the repository
-  $repo = 'cso-master-child-all-saints'; // Repository name as it appears in the URL
-  // Get the latest release tag from the repository. The User-Agent header must be sent, as per
-  // GitHub's API documentation: https://developer.github.com/v3/#user-agent-required
-  $file = json_decode(file_get_contents('https://api.github.com/repos/'.$user.'/'.$repo.'/releases/latest', false,
-      	stream_context_create(
-			['http' => ['header' => "User-Agent: ".$user."\r\n"],
-			'ssl' => ["verify_peer"=>false, "verify_peer_name"=>false]]
-		)
-  ));
-  if($file) {
-	$update = filter_var($file->tag_name, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-    // Only return a response if the new version number is higher than the current version
-    if($update > $current) {
-  	  $data->response[$theme] = array(
-	      'theme'       => $theme,
-	      // Strip the version number of any non-alpha characters (excluding the period)
-	      // This way you can still use tags like v1.1 or ver1.1 if desired
-	      'new_version' => $update,
-	      'url'         => 'https://github.com/'.$user.'/'.$repo,
-	      'package'     => $file->zipball_url,
-      );
-    }
-  }
-  return $data;
-}
-*/
-
-
 class CSO_Child_Theme_Updater {
     private $file;    
     private $theme;    
@@ -96,6 +54,7 @@ class CSO_Child_Theme_Updater {
     private $repository;    
     private $authorize_token;
     private $github_response;
+    public $log = array();
   
     public function __construct( $file ) {
         $this->file = $file;
@@ -109,11 +68,15 @@ class CSO_Child_Theme_Updater {
     public function set_theme_properties() {
         $this->version  = wp_get_theme($this->theme)->get('Version');
         $this->themeObject = wp_get_theme($this->theme);
-        $this->active	= $this->theme === get_stylesheet() ? true : false;
+
+        $this->log[] = array('version' =>  wp_get_theme($this->theme)->get('Version'));
     }
   
     public function set_theme( $theme ) {
         $this->theme = $theme;
+        $this->active	= $this->theme === get_stylesheet() ? true : false;
+
+        $this->log[] = array('active' =>  $this->active, 'stylesheet' => get_stylesheet(),'theme'=> $theme );
     }
     public function set_username( $username ) {
         $this->username = $username;
@@ -131,6 +94,8 @@ class CSO_Child_Theme_Updater {
           $request_uri = sprintf( 'https://api.github.com/repos/%s/%s/releases/latest', $this->username, $this->repository ); // Build URI
             
           $args = array();
+
+          $this->log[] = array('request_url' => $request_uri);
   
           if( $this->authorize_token ) { // Is there an access token?
               $args['headers']['Authorization'] = "token {$this->authorize_token}"; // Set the headers
@@ -145,6 +110,8 @@ class CSO_Child_Theme_Updater {
                 'ssl' => ["verify_peer"=>false, "verify_peer_name"=>false]
             ])
           ));
+
+          $this->log[] = array('response' => $response);
   
           if( is_array( $response ) ) { // If it is an array
               $response = current( $response ); // Get the first item
@@ -155,12 +122,14 @@ class CSO_Child_Theme_Updater {
     }
   
     public function initialize() {
+        $this->log[] = array('init' =>  true );
+
         add_filter( 'pre_set_site_transient_update_themes', array( $this, 'modify_transient' ), 10, 1 );
         //add_filter( 'plugins_api', array( $this, 'plugin_popup' ), 10, 3);
         add_filter( 'upgrader_post_install', array( $this, 'after_install' ), 10, 3 );
         
         // Attempt rename of files when downloading
-        add_filter( 'upgrader_source_selection', array( $this, 'rename_package_upon_download' ), 10, 3 );
+        //add_filter( 'upgrader_source_selection', array( $this, 'rename_package_upon_download' ), 10, 3 );
 
         // Add Authorization Token to download_package
         add_filter( 'upgrader_pre_download',
@@ -172,11 +141,16 @@ class CSO_Child_Theme_Updater {
     }
   
     public function modify_transient( $transient ) {
+
+        $this->log[] = array('transient_unmodified' =>  $transient );
   
         if( property_exists( $transient, 'checked') ) { // Check if transient has a checked property
   
             if( $checked = $transient->checked ) { // Did Wordpress check for updates?
                 $this->get_repository_info(); // Get the repo info
+
+
+                $this->log[] = array('transient_checked' =>  $checked );
 
   
                 if( gettype($this->github_response) === "boolean" ) { return $transient; }
@@ -189,6 +163,8 @@ class CSO_Child_Theme_Updater {
                     'gt' 
                 ); // Check if we're out of date
 
+
+                $this->log[] = array('modify_transient' =>  true, 'github_version' => $github_version,  'out_of_date' => $out_of_date );
   
                 if( $out_of_date ) {
   
@@ -204,7 +180,8 @@ class CSO_Child_Theme_Updater {
                     );
   
                     $transient->response[$this->theme] = $theme; // Return it in response
-  
+                    
+                    $this->log[] = array('out_of_date' => true, 'theme'=> $theme);
                 }
             }
         }
@@ -212,6 +189,29 @@ class CSO_Child_Theme_Updater {
         return $transient; // Return filtered transient
     }
 
+    /*
+	public function rename_package_upon_download_filter( $source, $remote_source=NULL, $upgrader=NULL ) {
+        $slug = $this->theme;
+        $repo = null;
+        
+        $upgrader_object = null;
+        $remote_source = $wp_filesystem->wp_content_dir() . 'upgrade/';
+        $new_source =  trailingslashit( $remote_source ) . $slug;
+		*/
+        /*
+        if(  strpos( $source, $this->theme ) === false )
+            return $source;
+
+        
+        $path_parts = pathinfo($source);
+       
+
+        $corrected_source = $path_parts['dirname'].'/'. self::$repo_slug .'/';
+        *//*
+        rename( $source, $corrected_source );
+
+		return trailingslashit( $new_source );
+	}*/
 
 	public function rename_package_upon_download( $source, $remote_source=NULL, $upgrader=NULL ) {		
 		if( isset($_GET['action'] ) && stristr( $_GET['action'], 'theme' ) ) {
@@ -233,7 +233,6 @@ class CSO_Child_Theme_Updater {
 	}
   
     public function download_package( $args, $url ) {
-  
       //dump_it('Download Package', 'red');
       //dump_it($args, 'red');
   
@@ -251,14 +250,19 @@ class CSO_Child_Theme_Updater {
     public function after_install( $response, $hook_extra, $result ) {
   
         global $wp_filesystem; // Get global FS object
+
+
+        $this->log[] = array('after_install' => true );
   
         $install_directory = get_theme_root(). '/' . $this->theme ; // Our theme directory
         $wp_filesystem->move( $result['destination'], $install_directory ); // Move files to the theme dir
         $result['destination'] = $install_directory; // Set the destination for the rest of the stack
 
+        $this->log[] = array('post_after_install' => true, 'install_directory' => $install_directory,'result_destination' => $result['destination']);
+
         // Activate the theme again once the files have been moved etc.
         if($this->active) {
-            switch_theme( 'cso-master-child-all-saints' );
+            switch_theme( $this->theme );
         }
   
         return $result;
@@ -266,6 +270,7 @@ class CSO_Child_Theme_Updater {
 }
   
 $updater = new CSO_Child_Theme_Updater( __FILE__ );
+
 $updater->set_username( 'BeechAgency' );
 $updater->set_repository( 'cso-master-child-all-saints' );
 $updater->set_theme('cso-master-child-all-saints'); 
@@ -277,3 +282,16 @@ $updater->initialize();
 //var_dump( get_theme_root() );
 //var_dump(wp_get_theme()->get_theme_root_uri() );
 //var_dump( get_stylesheet() === 'cso-master-child-all-saints' );
+
+function console_log($output, $with_script_tags = true) {
+    $js_code = 'console.log("DEBUG ON"); console.log(' . json_encode($output, JSON_HEX_TAG) . 
+');';
+    if ($with_script_tags) {
+        $js_code = '<script type="text/javascript" id="debugging">' . $js_code . '</script>';
+    }
+    echo $js_code;
+}
+
+console_log($updater->log, true);
+
+do_action('admin_footer', 'console_log');
