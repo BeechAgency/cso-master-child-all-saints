@@ -7,7 +7,7 @@ Author URI: https://beech.agency/
 Template: cso-master
 
 Description: A theme for the All Saints' College Maitland 
-Version: 0.8
+Version: 0.9
 Tested up to: 6.4
 Requires PHP: 8.1
 License: GNU General Public License v2 or later
@@ -58,6 +58,9 @@ nav.header-alternative img.logo {
 	margin-top: -2rem;
     transform: translate(0, 1rem);
 }
+nav.header-auxiliary-nav + aside.mega-menu-wrapper.open .logo {
+	margin-top: -1rem;
+}
 
 @media screen and (max-width: 960px) {
 	.nav-header-utility li:not(.menu-item-btn) {
@@ -68,6 +71,16 @@ nav.header-alternative img.logo {
 @media screen and (max-width: 860px) { 
 	nav img.logo, aside img.logo {
 		transform: translate(0, -1rem);
+	}
+}
+
+@media screen and (max-width: 479px) {
+	nav.header-alternative img.logo {
+		margin-top: 0;
+		transform: translate(0,0);
+	}
+	nav.header-auxiliary-nav + aside.mega-menu-wrapper.open .logo {
+		margin-top: 0;
 	}
 }
 
