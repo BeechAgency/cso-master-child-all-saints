@@ -287,16 +287,3 @@ $updater->initialize();
 //var_dump( get_theme_root() );
 //var_dump(wp_get_theme()->get_theme_root_uri() );
 //var_dump( get_stylesheet() === 'cso-master-child-all-saints' );
-
-function console_log($output, $with_script_tags = true) {
-    $js_code = 'console.log("DEBUG ON"); console.log(' . json_encode($output, JSON_HEX_TAG) . 
-');';
-    if ($with_script_tags) {
-        $js_code = '<script type="text/javascript" id="debugging">' . $js_code . '</script>';
-    }
-    echo $js_code;
-}
-
-//console_log($updater->log, true);
-
-do_action('admin_footer', 'console_log');
